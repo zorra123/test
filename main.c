@@ -39,12 +39,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f0xx_hal.h"
+#include "AppLib.h"
 
 /* USER CODE BEGIN Includes */
 
-#define __Num_Katode 8
-#define __Num_Anode 4
-#define __Num_HL 4
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -58,15 +56,7 @@ PCD_HandleTypeDef hpcd_USB_FS;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-enum
-{
-	PORT_A = 1,
-	PORT_B,
-	PORT_C,
-	PORT_D,
-	PORT_E,
-	PORT_F	
-};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,165 +68,9 @@ static void MX_TSC_Init(void);
 static void MX_USB_PCD_Init(void);
 
 
-
 /* USER CODE BEGIN PFP */
-
 /* Private function prototypes -----------------------------------------------*/
-//void config(struct MyGroup *, uint8_t , const uint8_t *, const uint8_t *);
-struct MyHL
-{
-	//uint8_t*(*ptr)[2][__Num_Katode];
-	 uint32_t *(*ptr_katod)[2][__Num_Katode];
-	const uint8_t(**ptr_katod_pin)[__Num_Katode];
-	uint32_t **ptr_anod[2][1];
-	const uint8_t *ptr_anod_pin;
-	void(*func_turnOn)(struct MyHL*, uint8_t numeral);
-	//uint8_t a;
-};
 
-struct MyGroup
-{	
-	// struct of katod_ a - katod_[0],b - katod_[1]
-	const uint8_t (*katod_pin)[__Num_Katode];
-	const uint32_t *(katod_port[2])[__Num_Katode];
-	const uint8_t(*anod_pin)[__Num_Anode];
-	const uint32_t *(anod_port[2])[__Num_Anode];
-	struct MyHL HL[__Num_HL];
-};
-void turnOn(struct MyHL *HL,uint8_t numeral) {
-	switch (numeral)
-	{
-	case 1:
-		
-		break;
-	case 2:
-
-		break;
-	case 3:
-
-		break;
-	case 4:
-
-		break;
-
-	case 5:
-
-		break;
-	case 6:
-
-		break;
-	case 7:
-
-		break;
-	case 8:
-
-		break;
-	case 9:
-		*(*HL->ptr_katod[0])[2] = 1 << (**HL->ptr_katod_pin)[2];
-		break;
-	case 0:
-		break;
-	}
-}
-// סגÿחü App ס lib
-void config(struct MyGroup *group, uint8_t Num_group, const uint8_t *katod, const uint8_t *anod) {
-	uint8_t *ptr_katod_port = &katod[__Num_Katode];
-	uint8_t *ptr_anod_port = &anod[__Num_Anode];
-	uint8_t j;
-	for (uint8_t i = 0; i < Num_group; i++) {
-		group[i] = (struct MyGroup) { .katod_pin = &katod[0], .anod_pin = &anod[0] };
-		for (j = 0; j < __Num_Katode; j++)
-		{
-			switch (*ptr_katod_port)
-			{
-			case PORT_A :
-				group[i].katod_port[0][j] = &GPIOA->BSRR;
-				group[i].katod_port[1][j] = &GPIOA->BRR;
-				break;
-			case PORT_B :
-				group[i].katod_port[0][j] = &GPIOB->BSRR;
-				group[i].katod_port[1][j] = &GPIOB->BRR;
-				break;
-			case PORT_C :
-				group[i].katod_port[0][j] = &GPIOC->BSRR;
-				group[i].katod_port[1][j] = &GPIOC->BRR;
-				break;
-			case PORT_D :
-				group[i].katod_port[0][j] = &GPIOD->BSRR;
-				group[i].katod_port[1][j] = &GPIOD->BRR;
-				break;
-			case PORT_E :
-				group[i].katod_port[0][j] = &GPIOE->BSRR;
-				group[i].katod_port[1][j] = &GPIOE->BRR;
-				break;
-			case PORT_F :
-				group[i].katod_port[0][j] = &GPIOF->BSRR;
-				group[i].katod_port[1][j] = &GPIOF->BRR;
-				break;				
-			}
-			ptr_katod_port++;
-		}
-		for (j = 0; j < __Num_Anode; j++)
-		{
-			switch (*ptr_anod_port)
-			{
-			case PORT_A :
-				group[i].anod_port[0][j] = &GPIOA->BRR;
-				group[i].anod_port[1][j] = &GPIOA->BSRR;
-				break;
-			case PORT_B :
-				group[i].anod_port[0][j] = &GPIOB->BRR;
-				group[i].anod_port[1][j] = &GPIOB->BSRR;
-				break;
-			case PORT_C :
-				group[i].anod_port[0][j] = &GPIOC->BRR;
-				group[i].anod_port[1][j] = &GPIOC->BSRR;
-				break;
-			case PORT_D :
-				group[i].anod_port[0][j] = &GPIOD->BRR;
-				group[i].anod_port[1][j] = &GPIOD->BSRR;
-				break;
-			case PORT_E :
-				group[i].anod_port[0][j] = &GPIOE->BRR;
-				group[i].anod_port[1][j] = &GPIOE->BSRR;
-				break;
-			case PORT_F :
-				group[i].anod_port[0][j] = &GPIOF->BRR;
-				group[i].anod_port[1][j] = &GPIOF->BSRR;
-				break;				
-			}
-			ptr_anod_port++;
-		}
-		for (j = 0; j < __Num_HL; j++) {
-			group[i].HL[j].ptr_katod = &group[i].katod_port;
-			group[i].HL[j].ptr_katod_pin = &group[i].katod_pin;
-			group[i].HL[j].ptr_anod[0][0] = &group[i].anod_port[0][j];
-			group[i].HL[j].ptr_anod[1][0] = &group[i].anod_port[1][j];
-			group[i].HL[j].ptr_anod_pin = &(*group[i].anod_pin)[j];
-			group[i].HL[j].func_turnOn = &turnOn;
-		}
-	}
-}
-uint16_t pow(uint8_t x, uint8_t n) {
-	return n == 0 ? 1 : x * pow(x, n - 1);
-}
-void kostil(struct MyGroup *group, uint8_t size_group, const uint8_t *array_numeral, uint8_t size_array_numeral)
-{
-	group->HL[3].func_turnOn(&group->HL[3],array_numeral[0]);
-}
-
-//test
-void setNumber(struct MyGroup *group, uint8_t size_group, const uint32_t *number, uint8_t size_number) {
-	//	group[0].HL[0].func_turnOn( *number / 1000);
-	uint8_t array[size_number];
-	uint32_t tmp = *number;
-	for (int i = 0; i < size_number; i++)
-	{
-		array[i] = tmp / pow(10, size_number - (i + 1));
-		tmp = tmp % pow(10, size_number - (i + 1));
-	}
-	kostil(group, size_group, array, size_number);
-}
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -250,41 +84,17 @@ void setNumber(struct MyGroup *group, uint8_t size_group, const uint32_t *number
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-	const uint8_t init_katod[2][__Num_Katode] = {
-		1,
-		2,
-		9,
-		4,
-		5,
-		6,
-		7,
-		8,
-		PORT_A,
-		PORT_B,
-		PORT_C,
-		PORT_D,
-		PORT_E,
-		PORT_F,
-		PORT_B,
-		PORT_C
-	};
-	const uint8_t init_anod[2][__Num_Anode] = {
-		9,
-		10,
-		11,
-		12,
-		PORT_F,
-		PORT_E,
-		PORT_D,
-		PORT_C
-	};
 	
-	uint8_t size_group = 1;
-	struct MyGroup group[size_group];
-	uint8_t size_number = 4;
-	uint32_t number = 9876;
-	//setNumber(&group, &number);
+  /* USER CODE BEGIN 1 */
+	uint8_t num_group = 2;
+	struct MyGroup group[num_group];
+	config(group, num_group);
+	uint32_t number[2] = { 876, 1234 };
+	/*
+		//(GPIO_TypeDef *) tmp;
+	GPIO_TypeDef *tmp[5];
+	tmp[0] = (GPIO_TypeDef *) GPIOA_BASE;
+	tmp[0]->BSRR;*/
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -310,24 +120,17 @@ int main(void)
   MX_TSC_Init();
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
-
-	config(&group, 1, &init_katod, &init_anod);
-	setNumber(&group, size_group, &number, size_number);
-  /* USER CODE END 2 */
+	writeBuffer(group, number, num_group,4);
+	
+	/* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+	  readBuffer(group, num_group);
   /* USER CODE END WHILE */
-/*
-	  *katod_port[0][0] = 1 << katod_pin[0];
-	  HAL_Delay(2);
-	  *katod_port[1][0] = 1 << katod_pin[0];*/
-	  //GPIOC->BSRR = 1 << 9;
-	  HAL_Delay(500);
-	  
+ //GPIOC->BSRR = 1<<9;
   /* USER CODE BEGIN 3 */
 
   }
